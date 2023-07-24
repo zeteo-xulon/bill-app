@@ -20,6 +20,7 @@
   "dependencies": {
     "express": "^4.17.1",
     "global": "^4.4.0",
+    "jest-mock": "^29.6.1",
     "jquery": "^3.5.1",
     "path": "^0.12.7"
   },

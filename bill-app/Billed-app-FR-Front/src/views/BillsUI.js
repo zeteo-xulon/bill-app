@@ -8,9 +8,9 @@ const row = (bill) => {
   return (`
     <tr>
       <td>${bill.type}</td>
-      <td>${bill.name}</td>
-      <td>${bill.date}</td>
-      <td>${bill.amount} €</td>
+      <td class="bill__name">${bill.name}</td>
+      <td class="bill__date">${bill.date}</td>
+      <td class="bill__amount">${bill.amount} €</td>
       <td>${bill.status}</td>
       <td>
         ${Actions(bill.fileUrl)}
@@ -20,7 +20,7 @@ const row = (bill) => {
   }
 
 const rows = (data) => {
-  return (data && data.length) ? data.map(bill => row(bill)).join("") : ""
+  return (data && data.length) ? data.map(bill => row(bill)).join("") : "Aucune note de frais n'a été enregistrée"
 }
 
 export default ({ data: bills, loading, error }) => {
