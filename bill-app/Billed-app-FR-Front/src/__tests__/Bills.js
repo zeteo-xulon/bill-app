@@ -2,15 +2,22 @@
  * @jest-environment jsdom
  */
 
-import {screen, waitFor} from "@testing-library/dom"
+import {screen} from "@testing-library/dom"
+import userEvent from "@testing-library/user-event"
 import BillsUI from "../views/BillsUI.js"
 import { bills } from "../fixtures/bills.js"
-import { ROUTES_PATH} from "../constants/routes.js";
+import { ROUTES_PATH, ROUTES } from "../constants/routes.js";
 import {localStorageMock} from "../__mocks__/localStorage.js";
 import Bills from "../containers/Bills.js";
-import {handleClickIconEye} from "../containers/Bills.js";
-
 import router from "../app/Router.js";
+import { modal } from "../views/DashboardFormUI.js";
+import { formatDate } from "../app/format.js";
+import mockedBills from "../__mocks__/store.js";
+
+const onNavigate = (pathname) => {
+  document.body.innerHTML = ROUTES({ pathname })
+}
+
 
 describe("Given I am connected as an employee", () => {
   Object.defineProperty(window, 'localStorage', { value: localStorageMock })
@@ -47,57 +54,121 @@ describe("Given I am connected as an employee", () => {
   })
 
 
-  // describe("When I am on Bills page and I click on the new bill button", () => {
-  //   test("Then it should render NewBill page", () => {
-  //     const html = BillsUI({ data: [] })
-  //     document.body.innerHTML = html
-  //     const onNavigate = (pathname) => {
-  //       document.body.innerHTML = ROUTES({ pathname })
-  //     }
-  //     const bills = new Bills({ document, onNavigate, firestore: null, localStorage: window.localStorage })
-  //     const handleClickNewBill = jest.fn(bills.handleClickNewBill)
-  //     const newBillBtn = screen.getByTestId('btn-new-bill')
-  //     newBillBtn.addEventListener('click', handleClickNewBill)
-  //     fireEvent.click(newBillBtn)
-  //     expect(handleClickNewBill).toHaveBeenCalled()
-  //     expect(screen.getAllByText('Envoyer une note de frais')).toBeTruthy()
-  //   })
-  // })
+  describe("When I am on Bills page and I click on the new bill button", () => {
+    test("Then it should render NewBill page", () => {
+      // DOM element creation
+      document.body.innerHTML = BillsUI({ data: [] })
+
+      // init Bills container
+      const billsContainer = new Bills({ 
+        document, 
+        onNavigate, 
+        firestore: null, 
+        localStorage: window.localStorage 
+      })
+
+      // click on new bill button Event
+      const handleClickNewBill = jest.fn(billsContainer.handleClickNewBill())
+      const newBillBtn = screen.getByText('Envoyer une note de frais');
+      newBillBtn.addEventListener('click', handleClickNewBill);
+      userEvent.click(newBillBtn);
+
+      // Assert
+      expect(handleClickNewBill).toHaveBeenCalled()
+      expect(screen.getByText('Envoyer une note de frais')).toBeTruthy()
+    })
+  })
 
 
-  // describe("When I am on Bills page and I click on the icon eye", () => {
-  //   test('handleClickIconEyeCopie should display the bill image in a modal', () => {
-  //     // Arrange
-  //     let copieBills = new Bills({document, onNavigate, firestore: null, localStorage: null, bills: bills, loading: false, error: null})
-  //     // console.log("This is Bills => ", copieBills)
-  //     const fakeBill = "../assets/images/facturefreemobile.jpg";
-  //     document.body.innerHTML = BillsUI({ data: bills });
-  //     const icon = screen.getAllByTestId('icon-eye')[0];
-  //     const handleClickIconEyeCopie = jest.fn(e => copieBills.handleClickIconEye(icon));
-  //     icon.addEventListener('click', () => handleClickIconEyeCopie())
-  //     const modalBody = document.querySelector('.modal-body');
-  //     let billUrl = icon.getAttribute("data-bill-url");
-  //     billUrl = fakeBill;
+  describe("When I am on Bills page and I click on the icon eye", () => {
+    test('handleClickIconEyeCopie should display the bill image in a modal', () => {
+      // Mock modal Jquery
+      $.fn.modal = jest.fn();
+
+      // DOM element creation
+      const billUrl = "../assets/images/facturefreemobile.jpg";
+      document.body.innerHTML = BillsUI({ data: bills });
+
+      // Init Bills container
+      let copyBills = new Bills({
+        document, 
+        onNavigate, 
+        firestore: null, 
+        localStorage: null, 
+        bills: bills, 
+        loading: false, 
+        error: null
+      })
+
+      // Icon eye Event creation
+      const icon = screen.getAllByTestId('icon-eye')[0];
+      const handleClickIconEyeCopie = jest.fn(e => copyBills.handleClickIconEye(icon));
+      icon.addEventListener('click', () => handleClickIconEyeCopie())
+      const modalBody = document.querySelector('.modal-body');
+      modalBody.innerHTML = `<img width="300" src="${billUrl}" alt="Bill" />`
     
-  //     // Act
-  //     icon.click()
+      // Act
+      userEvent.click(icon);
         
-  //     // Assert
-  //     expect(handleClickIconEyeCopie).toHaveBeenCalled()
-  //     expect(modalBody.innerHTML).toContain(`<img width="300" src="${billUrl}" alt="Bill" />`)
-  //   })
-  // })
+      // Assert
+      expect(handleClickIconEyeCopie).toHaveBeenCalled()
+      expect(screen.getByText('Justificatif')).toBeTruthy()
+    })
+  })
 
-
-  describe("Wheb Im on the Bills page and there is multiple bills", () => {
-    test("Then bills should be ordered from earliest to latest", () => {
+  
+  // test that will verify the type of date format in the bills
+  describe("When I am on Bills page and there is multiple bills", () => {
+    test("Then bills should have a date format using formatDate()", async () => {
+      // DOM element creation
       document.body.innerHTML = BillsUI({ data: bills })
+
+      // mock Bills container and get bills
+      const billsContainer = new Bills({
+        document,
+        onNavigate,
+        store: mockedBills,
+        localStorage: window.localStorage,
+      })
+      
+      let results = await billsContainer.getBills()
+      console.log("This is results => ", results, typeof results)
+        for(let result in results) { 
+          console.log("This is result => ", result)
+        }; 
+
+
+
+      // date regex format
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+
+      // date array creation
       const dates = Array.from(document.body.querySelectorAll('.bill__date')).map(a => a.innerHTML)
-      // to-do write expect expression that checks if the bills are ordered from earliest to latest (anti-chrono)
-      // (/^(0[1-9]|[12]\d|3[01])\s(Jan|Fév|Mars|Avr|Mai|Juin|Juil|Août|Sept|Oct|Nov|Déc)\.\s\d\d$/i)
+
+      // Assert
+      dates.map(date => dateRegex.test(date)).forEach(date => expect(date).toBeTruthy())
+    })
+  })
+
+
+
+  describe("When Im on the Bills page and there is multiple bills", () => {
+    test("Then bills should be ordered from earliest to latest", () => {
+      // DOM element creation
+      document.body.innerHTML = BillsUI({ data: bills })
+
+      // date array creation
+      const dates = Array.from(document.body.querySelectorAll('.bill__date')).map(a => a.innerHTML)
+
+      // sort dates array
       const antiChrono = (a, b) => (b-a)
       const datesSorted = [...dates].sort(antiChrono)
+
+      // Assert
       expect(dates).toEqual(datesSorted)
+      
+      // possible evolution date format
+      // (/^(0[1-9]|[12]\d|3[01])\s(Jan|Fév|Mars|Avr|Mai|Juin|Juil|Août|Sept|Oct|Nov|Déc)\.\s\d\d$/i)
     })
   })
 
