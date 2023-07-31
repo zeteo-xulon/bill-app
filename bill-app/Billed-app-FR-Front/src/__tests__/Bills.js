@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 
-import {screen} from "@testing-library/dom"
+import {screen, wait} from "@testing-library/dom"
 import userEvent from "@testing-library/user-event"
 import BillsUI from "../views/BillsUI.js"
 import { bills } from "../fixtures/bills.js"
@@ -13,6 +13,7 @@ import router from "../app/Router.js";
 import { modal } from "../views/DashboardFormUI.js";
 import { formatDate } from "../app/format.js";
 import mockedBills from "../__mocks__/store.js";
+import mockedBillsWrongDates from "../__mocks__/storeWrongDates.js";
 
 const onNavigate = (pathname) => {
   document.body.innerHTML = ROUTES({ pathname })
@@ -46,10 +47,46 @@ describe("Given I am connected as an employee", () => {
   })
 
 
-  describe("When I am on the Bills page but it is empty", () => {
+  describe("Given I am on the Bills page but it is empty", () => {
     test("Then it should render 'No bill yet'", () => {
       document.body.innerHTML = BillsUI({ data: [] })
       expect(screen.getAllByText("Aucune note de frais n'a été enregistrée")).toBeTruthy()
+    })
+
+    describe("When I click on the icon eye", () => {
+      test('Then an error should be throw', () => {
+        // Mock modal Jquery
+        $.fn.modal = jest.fn();
+        
+        // DOM init
+        document.body.innerHTML = BillsUI({ data: [] })
+
+        // Init Bills container
+        const billsContainer = new Bills({ 
+          document, 
+          onNavigate, 
+          firestore: null, 
+          localStorage: window.localStorage 
+        })
+
+        // // Icon eye Event creation
+        // const icon = screen.getAllByTestId('icon-eye')[0] ? screen.getAllByTestId('icon-eye')[0] : null;
+        //   const handleClickIconEyeCopie = jest.fn();
+        //   icon.addEventListener('click', () => handleClickIconEyeCopie())
+        //   const modalBody = document.querySelector('.modal-body');
+        //   modalBody.innerHTML = `<img width="300" src="${billUrl}" alt="Bill" />`
+
+        // // Act
+        // userEvent.click(icon);
+        
+        // const t = () => {
+        //   throw new TestingLibraryElementError("Unable to find an element by: [data-testid=\"icon-eye\"]");
+        // };
+        // expect(t).toThrow(TestingLibraryElementError);
+
+        // // Assert
+        // // expect(handleClickIconEyeCopie).toThrow(Error)
+      })
     })
   })
 
@@ -117,36 +154,51 @@ describe("Given I am connected as an employee", () => {
   })
 
   
+
   // test that will verify the type of date format in the bills
   describe("When I am on Bills page and there is multiple bills", () => {
     test("Then bills should have a date format using formatDate()", async () => {
-      // DOM element creation
-      document.body.innerHTML = BillsUI({ data: bills })
+        // DOM element creation
+        document.body.innerHTML = BillsUI({ data: bills })
 
-      // mock Bills container and get bills
-      const billsContainer = new Bills({
-        document,
-        onNavigate,
-        store: mockedBills,
-        localStorage: window.localStorage,
-      })
-      
-      let results = await billsContainer.getBills()
-      console.log("This is results => ", results, typeof results)
-        for(let result in results) { 
-          console.log("This is result => ", result)
-        }; 
+        // mock Bills container and get bills
+        const billsContainerGoodDates = new Bills({
+          document, onNavigate, store: mockedBills,
+          localStorage: window.localStorage,
+        })
+
+        const billsContainerWrongDates = new Bills({
+          document, onNavigate, store: mockedBillsWrongDates,
+          localStorage: window.localStorage,
+        })
+
+        
+        // date regex format (ex: 01 Apr. 98)
+        const dateRegex = /^(?:[1-9]|[12]\d|3[01])\s(Jan|Fév|Mar|Avr|Mai|Jui|Jui|Aoû|Sep|Oct|Nov|Déc)\.\s\d{2}$/;
+        
+        // get bills dates
+        let goodDatesResults = await getDates(billsContainerGoodDates.getBills());
+        let wrongDatesResults = await getDates(billsContainerWrongDates.getBills());
+
+        // test results
+        const goodDatesTest = testResult(goodDatesResults, dateRegex);
+        const wrongDatesTest = testResult(wrongDatesResults, dateRegex);
+
+        // Assert
+        expect(goodDatesTest).toBeTruthy()
+        expect(wrongDatesTest).toBeFalsy()
+        // expect(wrongDatesTest).toThrowError()
 
 
 
-      // date regex format
-      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      // // date regex format
+      // const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
 
-      // date array creation
-      const dates = Array.from(document.body.querySelectorAll('.bill__date')).map(a => a.innerHTML)
+      // // date array creation
+      // const dates = Array.from(document.body.querySelectorAll('.bill__date')).map(a => a.innerHTML)
 
-      // Assert
-      dates.map(date => dateRegex.test(date)).forEach(date => expect(date).toBeTruthy())
+      // // Assert
+      // dates.map(date => dateRegex.test(date)).forEach(date => expect(date).toBeTruthy())
     })
   })
 
@@ -173,3 +225,30 @@ describe("Given I am connected as an employee", () => {
   })
 
 })
+
+
+/**
+ * Get bills dates
+ * @param {*} billDatesContainer is a mock of bills container.bills()
+ * @param {*} dates as an empty array
+ * @returns an array with bills dates
+ */
+async function getDates(billDatesContainer, dates = []){
+  let waitingBills = await billDatesContainer;
+  let bills = [...waitingBills];
+  for(let result of bills) { dates.push(result.date) }
+  return dates;
+}
+
+/**
+ * Will test if the date format and return true or false depending on the result
+ * @param {*} datesArray an array with dates to test
+ * @param {*} regex received regex to test the dates
+ * @returns true or false
+ */
+function testResult(datesArray, regex){
+  for(let i=0; i < datesArray.length; i++){
+    if(!!regex.test(datesArray[i]) === false) { return false }
+  } 
+  return true;
+}
