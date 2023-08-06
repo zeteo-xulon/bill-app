@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 
-import {screen, wait} from "@testing-library/dom"
+import {screen} from "@testing-library/dom"
 import userEvent from "@testing-library/user-event"
 import BillsUI from "../views/BillsUI.js"
 import { bills } from "../fixtures/bills.js"
@@ -69,15 +69,24 @@ describe("Given I am connected as an employee", () => {
           localStorage: window.localStorage 
         })
 
-        // // Icon eye Event creation
-        // const icon = screen.getAllByTestId('icon-eye')[0] ? screen.getAllByTestId('icon-eye')[0] : null;
-        //   const handleClickIconEyeCopie = jest.fn();
-        //   icon.addEventListener('click', () => handleClickIconEyeCopie())
-        //   const modalBody = document.querySelector('.modal-body');
-        //   modalBody.innerHTML = `<img width="300" src="${billUrl}" alt="Bill" />`
+        try {
+          // Icon eye Event creation
+          const icon = screen.getAllByTestId('icon-eye')[0] ? screen.getAllByTestId('icon-eye')[0] : null;
+          const handleClickIconEyeCopie = jest.fn();
+          icon.addEventListener('click', () => handleClickIconEyeCopie())
+          const modalBody = document.querySelector('.modal-body');
+          modalBody.innerHTML = `<img width="300" src="${billUrl}" alt="Bill" />`
 
-        // // Act
-        // userEvent.click(icon);
+          // Act
+          userEvent.click(icon);
+
+        } catch (error) {
+          document.body.innerHTML = `<div id="error"><p>An error as occured</p></div>`
+        }
+        expect(screen.getByText('An error as occured')).toBeTruthy()
+
+
+
         
         // const t = () => {
         //   throw new TestingLibraryElementError("Unable to find an element by: [data-testid=\"icon-eye\"]");
