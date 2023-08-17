@@ -127,28 +127,5 @@ describe("Given I am connected as an employee", () => {
       })
     })
   })
+  
 })
-
-
-/**
-* Probably to delete, but to past line 50 in case of error
-  const onNavigate = (pathname) => { document.body.innerHTML = ROUTES({ pathname }) }      
-  Object.defineProperty(window, "localStorage", { value: localStorageMock })
-  Object.defineProperty(window, "location", { value: { hash: ROUTES_PATH['NewBill']} })
-  window.localStorage.setItem("user", JSON.stringify({ type: "Employee" }))
-* 
-* Probably useless since it is already in Bill.js test
-* Line 38
-test("Then show the new bill page", () => {
-  localStorage.setItem("user", JSON.stringify({ type: "Employee", email: "a@a" }));
-  const root = document.createElement("div")
-  root.setAttribute("id", "root")
-  document.body.append(root)
-  router()
-  window.onNavigate(ROUTES_PATH.NewBill)
-})
-*
-* Line 64
-jest.spyOn(mockStore, "bills")
-
-* */ 
