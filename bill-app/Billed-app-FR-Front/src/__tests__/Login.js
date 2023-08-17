@@ -4,8 +4,10 @@
 
 import LoginUI from "../views/LoginUI";
 import Login from "../containers/Login.js";
-import { ROUTES } from "../constants/routes";
 import { fireEvent, screen } from "@testing-library/dom";
+import userEvent from "@testing-library/user-event";
+import { ROUTES } from "../constants/routes";
+
 
 describe("Given that I am a user on login page", () => {
   describe("When I do not fill fields and I click on employee button Login In", () => {
@@ -115,7 +117,53 @@ describe("Given that I am a user on login page", () => {
       expect(screen.getAllByText("Mes notes de frais")).toBeTruthy();
     });
   });
+
+  describe("When I click on Login button on Employee section with incorrect informations", () => {
+    test("Then it should fails to login as an Employee", async () => {
+      // HTML setup
+      document.body.innerHTML = LoginUI();
+    
+      // Arrange
+      const user = {
+        type: "Employee",
+        email: "employee@example.com",
+        password: "password",
+        status: "connected"
+      };
+    
+      const localStorageMock = { setItem: jest.fn() };
+      const loginMock = jest.fn(() => Promise.reject(new Error("Login failed")));
+      const createUserMock = jest.fn(() => Promise.resolve());
+      const onNavigateMock = jest.fn();
+
+      const loginInstance = new Login({
+        document: document,
+        localStorage: localStorageMock,
+        onNavigate: onNavigateMock
+      });
+
+    
+      loginInstance.login = loginMock;
+      loginInstance.createUser = createUserMock;
+    
+
+      // Espionner la méthode handleSubmitAdmin
+      jest.spyOn(loginInstance, 'handleSubmitEmployee');
+    
+      // Act
+      screen.getByTestId("employee-email-input").value = user.email;
+      screen.getByTestId("employee-password-input").value = user.password;
+      const button = screen.getByTestId("employee-login-button");
+    
+      await userEvent.click(button);
+
+      // Assert
+      expect(loginMock).toHaveBeenCalled();
+      expect(screen.getByText(/Login failed/)).toBeTruthy();
+    });
+  });
 });
+
 
 describe("Given that I am a user on login page", () => {
   describe("When I do not fill fields and I click on admin button Login In", () => {
@@ -226,5 +274,53 @@ describe("Given that I am a user on login page", () => {
     test("It should renders HR dashboard page", () => {
       expect(screen.queryByText("Validations")).toBeTruthy();
     });
+
+  describe("When I click on Login button on Admin section with incorrect informations", () => {
+    test("Then it should fails to login as Admin", async () => {
+      // HTML setup
+      document.body.innerHTML = LoginUI();
+    
+      // Arrange
+      const user = {
+        type: "Admin",
+        email: "admin@example.com",
+        password: "password",
+        status: "connected"
+      };
+    
+      const localStorageMock = { setItem: jest.fn() };
+      const loginMock = jest.fn(() => Promise.reject(new Error("Login failed")));
+      const createUserMock = jest.fn(() => Promise.resolve());
+      const onNavigateMock = jest.fn();
+
+      const loginInstance = new Login({
+        document: document,
+        localStorage: localStorageMock,
+        onNavigate: onNavigateMock
+      });
+
+    
+      loginInstance.login = loginMock;
+      loginInstance.createUser = createUserMock;
+    
+
+      // Espionner la méthode handleSubmitAdmin
+      jest.spyOn(loginInstance, 'handleSubmitAdmin');
+    
+      // Act
+      screen.getByTestId("admin-email-input").value = user.email;
+      screen.getByTestId("admin-password-input").value = user.password;
+      const button = screen.getByTestId("admin-login-button");
+    
+      await userEvent.click(button);
+      
+      console.log(document.body.innerHTML);
+
+      // Assert
+      expect(loginMock).toHaveBeenCalled();
+      expect(screen.getByText(/Login failed/)).toBeTruthy();
+    });
+  });
+    
   });
 });

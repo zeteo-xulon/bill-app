@@ -28,6 +28,8 @@ describe("Given I am connected as an employee", () => {
   Object.defineProperty(window, 'localStorage', { value: localStorageMock })
   window.localStorage.setItem('user', JSON.stringify({ type: 'Employee' }) );
 
+  
+
   describe("When I am on Bills Page", () => {
     test('Then the loading screen should appear', () => {
       document.body.innerHTML = BillsUI({ loading: true })
@@ -323,4 +325,3 @@ function testResult(datesArray, regex){
   } 
   return true;
 }
-

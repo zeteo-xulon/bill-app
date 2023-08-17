@@ -25,9 +25,15 @@ export default class Login {
     }
     this.localStorage.setItem("user", JSON.stringify(user))
     this.login(user)
-      .catch(
-        (err) => this.createUser(user)
-      )
+    .catch((err) => {
+      this.createUser(user);
+      const errorMsg = document.createElement('div');
+      errorMsg.textContent = "Login failed";
+      errorMsg.style.color = "red";
+      errorMsg.setAttribute("data-testid", "employee-error-msg");
+      document.body.innerHTML = "";
+      document.body.appendChild(errorMsg);
+    })
       .then(() => {
         this.onNavigate(ROUTES_PATH['Bills'])
         this.PREVIOUS_LOCATION = ROUTES_PATH['Bills']
@@ -47,9 +53,15 @@ export default class Login {
     }
     this.localStorage.setItem("user", JSON.stringify(user))
     this.login(user)
-      .catch(
-        (err) => this.createUser(user)
-      )
+      .catch((err) => {
+        this.createUser(user);
+        const errorMsg = document.createElement('div');
+        errorMsg.textContent = "Login failed";
+        errorMsg.style.color = "red";
+        errorMsg.setAttribute("data-testid", "admin-error-msg");
+        document.body.innerHTML = "";
+        document.body.appendChild(errorMsg);
+      })
       .then(() => {
         this.onNavigate(ROUTES_PATH['Dashboard'])
         this.PREVIOUS_LOCATION = ROUTES_PATH['Dashboard']
