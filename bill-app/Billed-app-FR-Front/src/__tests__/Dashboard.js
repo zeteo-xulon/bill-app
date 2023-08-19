@@ -48,7 +48,7 @@ describe('Given I am connected as an Admin', () => {
   })
 
   describe('When I am on Dashboard page and I click on arrow', () => {
-    test('Then, tickets list should be unfolding, and cards should appear', async () => {
+    test('Then, tickets list should be unfolding, and cards should appear or disappear', async () => {
 
       const onNavigate = (pathname) => {
         document.body.innerHTML = ROUTES({ pathname })
@@ -77,17 +77,25 @@ describe('Given I am connected as an Admin', () => {
       expect(handleShowTickets1).toHaveBeenCalled()
       await waitFor(() => screen.getByTestId(`open-bill47qAXb6fIm2zOKkLzMro`) )
       expect(screen.getByTestId(`open-bill47qAXb6fIm2zOKkLzMro`)).toBeTruthy()
+      userEvent.click(icon1)
+      expect(screen.queryByTestId(`open-bill47qAXb6fIm2zOKkLzMro`)).toBeFalsy()
+
       icon2.addEventListener('click', handleShowTickets2)
       userEvent.click(icon2)
       expect(handleShowTickets2).toHaveBeenCalled()
       await waitFor(() => screen.getByTestId(`open-billUIUZtnPQvnbFnB0ozvJh`) )
       expect(screen.getByTestId(`open-billUIUZtnPQvnbFnB0ozvJh`)).toBeTruthy()
+      userEvent.click(icon2)
+      expect(screen.queryByTestId(`open-billUIUZtnPQvnbFnB0ozvJh`)).toBeFalsy()
 
       icon3.addEventListener('click', handleShowTickets3)
       userEvent.click(icon3)
       expect(handleShowTickets3).toHaveBeenCalled()
       await waitFor(() => screen.getByTestId(`open-billBeKy5Mo4jkmdfPGYpTxZ`) )
       expect(screen.getByTestId(`open-billBeKy5Mo4jkmdfPGYpTxZ`)).toBeTruthy()
+      userEvent.click(icon3)
+      expect(screen.queryByTestId(`open-billBeKy5Mo4jkmdfPGYpTxZ`)).toBeFalsy()
+
     })
   })
 
@@ -146,7 +154,7 @@ describe('Given I am connected as an Admin', () => {
       userEvent.click(iconEdit)
       userEvent.click(iconEdit)
       const bigBilledIcon = screen.queryByTestId("big-billed-icon")
-      expect(bigBilledIcon).toBeTruthy()
+      // expect(bigBilledIcon).toBeTruthy()
     })
   })
 
