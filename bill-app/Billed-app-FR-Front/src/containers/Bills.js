@@ -3,17 +3,20 @@ import { formatDate, formatStatus } from "../app/format.js"
 import Logout from "./Logout.js"
 
 export default class {
-  constructor({ document, onNavigate, store, localStorage }) {
+  constructor({ document, onNavigate, store, localStorage }) {  
     this.document = document
     this.onNavigate = onNavigate
     this.store = store
     const buttonNewBill = document.querySelector(`button[data-testid="btn-new-bill"]`)
     if (buttonNewBill) buttonNewBill.addEventListener('click', this.handleClickNewBill)
     const iconEye = document.querySelectorAll(`div[data-testid="icon-eye"]`)
-    if (iconEye) iconEye.forEach(icon => {
-      icon.addEventListener('click', () => this.handleClickIconEye(icon))
-    })
-    new Logout({ document, localStorage, onNavigate })
+    if(iconEye.length>0){
+      iconEye.forEach(icon => {
+      icon.addEventListener('click', () => this.handleClickIconEye(icon))})
+      new Logout({ document, localStorage, onNavigate })
+    }else{
+      console.log("no bills generated");
+    }
   }
 
   handleClickNewBill = () => {
@@ -26,8 +29,6 @@ export default class {
     $('#modaleFile').find(".modal-body").html(`<div style='text-align: center;' class="bill-proof-container"><img width=${imgWidth} src=${billUrl} alt="Bill" /></div>`)
     $('#modaleFile').modal('show')
   }
-
-  
 
   getBills = () => {
     if (this.store) {

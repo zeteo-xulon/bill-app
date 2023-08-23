@@ -28,8 +28,6 @@ describe("Given I am connected as an employee", () => {
   Object.defineProperty(window, 'localStorage', { value: localStorageMock })
   window.localStorage.setItem('user', JSON.stringify({ type: 'Employee' }) );
 
-  
-
   describe("When I am on Bills Page", () => {
     test('Then the loading screen should appear', () => {
       document.body.innerHTML = BillsUI({ loading: true })
@@ -62,47 +60,24 @@ describe("Given I am connected as an employee", () => {
     describe("When I click on the icon eye", () => {
       test('Then an error should be throw', () => {
         // Mock modal Jquery
-        $.fn.modal = jest.fn();
-        
+        $.fn.modal = jest.fn();        
+        const logSpy = jest.spyOn(global.console, 'log');
         // DOM init
         document.body.innerHTML = BillsUI({ data: [] })
-
         // Init Bills container
+        //try{
         const billsContainer = new Bills({ 
-          document, 
-          onNavigate, 
-          firestore: null, 
-          localStorage: window.localStorage 
+            document, 
+            onNavigate, 
+            firestore: null, 
+            localStorage: window.localStorage 
         })
+        expect(logSpy).toHaveBeenCalled();
+        logSpy.mockRestore();
 
-        try {
-          // Icon eye Event creation
-          const icon = screen.getAllByTestId('icon-eye')[0] ? screen.getAllByTestId('icon-eye')[0] : null;
-          const handleClickIconEyeCopie = jest.fn();
-          icon.addEventListener('click', () => handleClickIconEyeCopie())
-          const modalBody = document.querySelector('.modal-body');
-          modalBody.innerHTML = `<img width="300" src="${billUrl}" alt="Bill" />`
-
-          // Act
-          userEvent.click(icon);
-
-        } catch (error) {
-          document.body.innerHTML = `<div id="error"><p>An error as occured</p></div>`
-        }
-        expect(screen.getByText('An error as occured')).toBeTruthy()
-
-
-
-        
-        // const t = () => {
-        //   throw new TestingLibraryElementError("Unable to find an element by: [data-testid=\"icon-eye\"]");
-        // };
-        // expect(t).toThrow(TestingLibraryElementError);
-
-        // // Assert
-        // // expect(handleClickIconEyeCopie).toThrow(Error)
       })
     })
+
   })
 
 
@@ -161,11 +136,44 @@ describe("Given I am connected as an employee", () => {
     
       // Act
       userEvent.click(icon);
-        
+      
+      // Pointing to the modal image
+      let imgContainer = document.querySelector(".bill-proof-container");
+      let img = imgContainer.querySelector("img");
+
       // Assert
       expect(handleClickIconEyeCopie).toHaveBeenCalled()
       expect(screen.getByText('Justificatif')).toBeTruthy()
+      expect(img).toBeTruthy()
     })
+
+
+    // test('Then with no icon eyes an error should display', () => {
+    //   console.log = jest.fn();
+
+    //   // DOM element creation
+    //   document.body.innerHTML = BillsUI({ data: [] });
+
+    //   // Init Bills container
+    //   let copyBills = new Bills({
+    //     document, 
+    //     onNavigate, 
+    //     firestore: null, 
+    //     localStorage: null,
+    //     loading: false, 
+    //     error: null
+    //   })
+
+    //   // Icon eye Event creation
+    //   const icon = screen.queryAllByTestId('icon-eye')[0];
+    //   const handleClickIconEyeCopie = jest.fn(e => copyBills.handleClickIconEye(icon));
+    //   const errorMessageCopie = jest.fn(e => copyBills.errorMessage());
+    //   if(icon) {icon.addEventListener('click', () => handleClickIconEyeCopie())}
+
+    //   // Assert
+    //   expect(handleClickIconEyeCopie).not.toHaveBeenCalled()
+    // })
+
   })
 
   

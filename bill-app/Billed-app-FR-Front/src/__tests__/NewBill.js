@@ -91,7 +91,7 @@ describe("Given I am connected as an employee", () => {
         expect(handleSubmit).toHaveBeenCalled();
       })
 
-      test("Then submit the form with the correct file with issue",() => {
+      test("Then submit the form with an incorrect format file to receive an error",() => {
         // DOM creation
         document.body.innerHTML = NewBillUI()
 

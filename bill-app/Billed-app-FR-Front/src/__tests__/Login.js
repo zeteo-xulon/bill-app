@@ -279,6 +279,14 @@ describe("Given that I am a user on login page", () => {
     test("Then it should fails to login as Admin", async () => {
       // HTML setup
       document.body.innerHTML = LoginUI();
+
+      const onNavigate = (pathname) => {
+        document.body.innerHTML = ROUTES({ pathname });
+      };
+
+      let PREVIOUS_LOCATION = "";
+
+      const store = jest.fn();
     
       // Arrange
       const user = {
@@ -294,11 +302,13 @@ describe("Given that I am a user on login page", () => {
       const onNavigateMock = jest.fn();
 
       const loginInstance = new Login({
-        document: document,
-        localStorage: localStorageMock,
-        onNavigate: onNavigateMock
+        document,
+        localStorage: window.localStorage,
+        onNavigate,
+        PREVIOUS_LOCATION,
+        store,
       });
-
+  
     
       loginInstance.login = loginMock;
       loginInstance.createUser = createUserMock;
@@ -321,6 +331,7 @@ describe("Given that I am a user on login page", () => {
       expect(screen.getByText(/Login failed/)).toBeTruthy();
     });
   });
-    
+
+
   });
 });
